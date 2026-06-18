@@ -37,6 +37,21 @@ model User {
   @@map("users")
 }
 
+// ─── Gallery (images + videos) ───────────────────────────────────────────────
+model GalleryItem {
+  id        String   @id @default(uuid())
+  type      String   @default("image") // "image" | "video"
+  section   String   @default("gallery") // "hero" | "about" | "gallery" | "media"
+  url       String
+  thumbnail String?
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([section, sortOrder])
+  @@map("gallery_items")
+}
+
 // ─── Settings (singleton) ────────────────────────────────────────────────────
 // One row holds the whole website configuration consumed by the public site
 // (header, footer, default SEO) and edited from the admin panel.

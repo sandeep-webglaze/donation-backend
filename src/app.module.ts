@@ -37,6 +37,8 @@ import { UsersModule } from './modules/users/user.module'; // User management
 import { SettingsModule } from './modules/settings/settings.module'; // Website settings
 import { CmsModule } from './modules/cms/cms.module'; // CMS pages & policies
 import { SeoModule } from './modules/seo/seo.module'; // Per-page SEO manager
+import { GalleryModule } from './modules/gallery/gallery.module'; // Gallery (images + videos)
+import { MediaModule } from './modules/media/media.module'; // File uploads
 import { RedisModule } from './modules/redis/redis.module'; // Redis caching
 import { HealthModule } from './modules/health/health.module'; // Health check endpoints
 import { RoutesModule } from './modules/routes/routes.module'; // Route listing (dev only)
@@ -96,7 +98,10 @@ import { JwtModule } from '@nestjs/jwt';
     // ══════════════════════════════════════════════════════════════════════
     ConfigModule.forRoot({
       isGlobal: true, // Makes ConfigService available in all modules
-      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Dynamic .env file selection
+      // Loads the env-specific file first (wins), then plain `.env` as a fallback.
+      // So DATABASE_URL can live ONLY in `.env` (shared with the Prisma CLI) and
+      // you don't have to duplicate it. Or put everything in `.env` for one file.
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
       load: [
         appConfig, // Application settings (port, env, URLs)
         databaseConfig, // Database connection (MongoDB/PostgreSQL)
@@ -176,6 +181,8 @@ import { JwtModule } from '@nestjs/jwt';
     SettingsModule, // Website settings (header/footer/SEO config)
     CmsModule, // CMS pages & policies (About, Privacy, Terms, etc.)
     SeoModule, // Per-page SEO for coded pages (home, about, contact, ...)
+    GalleryModule, // Gallery images + videos
+    MediaModule, // File uploads → /public/uploads
     HealthModule, // Health check endpoints (DB, Redis status)
     EmailModule,
     AwsUploadModule,

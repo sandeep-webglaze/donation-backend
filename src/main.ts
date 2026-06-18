@@ -52,9 +52,13 @@ async function bootstrap() {
 
   // CORS - Use config value
   app.enableCors({
-    origin: corsOrigins,
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:8080',
+    ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
@@ -73,7 +77,9 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      // Silently strip unknown props (e.g. id/createdAt sent by admin forms)
+      // instead of throwing 400 — otherwise every admin "Save" fails.
+      forbidNonWhitelisted: false,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,

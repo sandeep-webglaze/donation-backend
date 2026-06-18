@@ -25,14 +25,25 @@ async function main() {
   // ── Default site settings (singleton) ──
   const settings = await prisma.settings.findFirst();
   if (!settings) {
+    const fomLogo =
+      'https://images.squarespace-cdn.com/content/v1/68c03eefbb6dde4f22ccb573/a506a2c2-ad45-4e6a-a663-9b9748d01329/THE+FOM+Logo+2025.png?format=1500w';
     await prisma.settings.create({
       data: {
         siteName: 'The Friends of Mewar',
-        email,
-        metaTitle: 'The Friends of Mewar',
+        logo: fomLogo,
+        favicon: fomLogo,
+        ogImage: fomLogo,
+        email: 'info@thefriendsofmewar.org',
+        address: 'Udaipur, Rajasthan, India',
+        facebook: 'https://www.facebook.com/FriendsofMewar/',
+        instagram: 'https://www.instagram.com/thefriendsofmewar',
+        linkedin: 'https://www.linkedin.com/company/friends-of-mewar/',
+        metaTitle: 'The Friends of Mewar | Join Us in Making a Difference',
         metaDescription:
-          'Support The Friends of Mewar and help us create lasting impact.',
-        copyrightText: `© ${new Date().getFullYear()} The Friends of Mewar. All rights reserved.`,
+          "Born from the values of the House of Mewar, we advance healthcare, women's empowerment & education, and cultural preservation. Join us in making a difference.",
+        metaKeywords:
+          'ngo, donation, mewar, udaipur, healthcare, education, heritage, 80g',
+        copyrightText: `© ${new Date().getFullYear()} The Friends of Mewar. All Rights Reserved.`,
       },
     });
   }
