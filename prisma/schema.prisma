@@ -41,15 +41,33 @@ model User {
 model GalleryItem {
   id        String   @id @default(uuid())
   type      String   @default("image") // "image" | "video"
-  section   String   @default("gallery") // "hero" | "about" | "gallery" | "media"
+  pageKey   String   @default("home") // which page this media belongs to
+  section   String   @default("gallery") // section within the page
   url       String
   thumbnail String?
   caption   String?
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 
-  @@index([section, sortOrder])
+  @@index([pageKey, section, sortOrder])
   @@map("gallery_items")
+}
+
+// ─── Content blocks (per page-section editable text) ─────────────────────────
+// One row per (page, section). Holds the editable title/subtitle/body and any
+// extra settings for a section, so admins can change copy without code.
+model ContentBlock {
+  id         String   @id @default(uuid())
+  pageKey    String // "home", "about", "contact", ...
+  sectionKey String // "hero", "about", "cta", ...
+  title      String?
+  subtitle   String?
+  body       String?
+  settings   Json? // flexible extras (button label/href, stats, etc.)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([pageKey, sectionKey])
+  @@map("content_blocks")
 }
 
 // ─── Settings (singleton) ────────────────────────────────────────────────────

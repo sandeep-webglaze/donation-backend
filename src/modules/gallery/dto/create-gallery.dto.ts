@@ -6,8 +6,12 @@ export class CreateGalleryDto {
   type?: 'image' | 'video';
 
   @IsOptional()
-  @IsIn(['hero', 'about', 'gallery', 'media'])
-  section?: 'hero' | 'about' | 'gallery' | 'media';
+  @IsString()
+  pageKey?: string;
+
+  @IsOptional()
+  @IsString()
+  section?: string;
 
   @IsNotEmpty()
   @IsString()

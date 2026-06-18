@@ -7,10 +7,13 @@ import { CreateGalleryDto } from './dto/create-gallery.dto';
 export class GalleryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Public — gallery items, optionally filtered by section. */
-  findAll(section?: string) {
+  /** Public — gallery items, optionally filtered by page + section. */
+  findAll(pageKey?: string, section?: string) {
     return this.prisma.galleryItem.findMany({
-      where: section ? { section } : undefined,
+      where: {
+        ...(pageKey ? { pageKey } : {}),
+        ...(section ? { section } : {}),
+      },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
   }
@@ -18,7 +21,12 @@ export class GalleryService {
   /** Admin — add an item. */
   create(dto: CreateGalleryDto) {
     return this.prisma.galleryItem.create({
-      data: { ...dto, type: dto.type ?? 'image', section: dto.section ?? 'gallery' },
+      data: {
+        ...dto,
+        type: dto.type ?? 'image',
+        pageKey: dto.pageKey ?? 'home',
+        section: dto.section ?? 'gallery',
+      },
     });
   }
 

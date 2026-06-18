@@ -39,6 +39,7 @@ import { CmsModule } from './modules/cms/cms.module'; // CMS pages & policies
 import { SeoModule } from './modules/seo/seo.module'; // Per-page SEO manager
 import { GalleryModule } from './modules/gallery/gallery.module'; // Gallery (images + videos)
 import { MediaModule } from './modules/media/media.module'; // File uploads
+import { ContentModule } from './modules/content/content.module'; // Per-section content blocks
 import { RedisModule } from './modules/redis/redis.module'; // Redis caching
 import { HealthModule } from './modules/health/health.module'; // Health check endpoints
 import { RoutesModule } from './modules/routes/routes.module'; // Route listing (dev only)
@@ -183,6 +184,7 @@ import { JwtModule } from '@nestjs/jwt';
     SeoModule, // Per-page SEO for coded pages (home, about, contact, ...)
     GalleryModule, // Gallery images + videos
     MediaModule, // File uploads → /public/uploads
+    ContentModule, // Per-section editable content blocks
     HealthModule, // Health check endpoints (DB, Redis status)
     EmailModule,
     AwsUploadModule,

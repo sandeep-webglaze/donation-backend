@@ -21,11 +21,14 @@ import { Public } from '../../common/decorators/public.decorator';
 export class GalleryController {
   constructor(private readonly galleryService: GalleryService) {}
 
-  /** Public — used by the website. Optional ?section=hero|about|gallery|media */
+  /** Public — used by the website. Optional ?pageKey=home&section=hero */
   @Get()
   @Public()
-  findAll(@Query('section') section?: string) {
-    return this.galleryService.findAll(section);
+  findAll(
+    @Query('pageKey') pageKey?: string,
+    @Query('section') section?: string,
+  ) {
+    return this.galleryService.findAll(pageKey, section);
   }
 
   /** Admin — add an image/video. */
