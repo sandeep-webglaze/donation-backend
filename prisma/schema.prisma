@@ -1,0 +1,134 @@
+// ============================================================================
+// Prisma schema — PostgreSQL
+// Docs: https://pris.ly/d/prisma-schema
+// After editing: `yarn prisma generate` then `yarn prisma migrate dev`
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+// `role` is a plain string ("user" | "admin") to stay compatible with
+// the app-level Role enum in src/common/decorators/roles.decorator.ts
+model User {
+  id              String    @id @default(uuid())
+  name            String
+  email           String    @unique
+  password        String
+  phone           String?   @unique
+  address         String?
+  role            String    @default("user")
+  avatar          String?
+  avatarKey       String?
+  isActive        Boolean   @default(true)
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  lastLogin       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([email, role])
+  @@map("users")
+}
+
+// ─── Settings (singleton) ────────────────────────────────────────────────────
+// One row holds the whole website configuration consumed by the public site
+// (header, footer, default SEO) and edited from the admin panel.
+model Settings {
+  id              String   @id @default(uuid())
+  // Basic
+  siteName        String   @default("")
+  logo            String?
+  favicon         String?
+  email           String?
+  phone           String?
+  whatsapp        String?
+  address         String?
+  // Social
+  facebook        String?
+  instagram       String?
+  linkedin        String?
+  twitter         String?
+  // SEO defaults
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogImage         String?
+  canonicalUrl    String?
+  // Misc
+  copyrightText   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─── CMS Page ────────────────────────────────────────────────────────────────
+model CmsPage {
+  id              String   @id @default(uuid())
+  title           String
+  slug            String   @unique
+  content         String   @default("")
+  coverImage      String?
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  // draft | published
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@map("cms_pages")
+}
+
+// ─── Page SEO (per coded page) ───────────────────────────────────────────────
+// Admin-managed SEO for hard-coded frontend pages (home, about, contact, ...).
+// Keyed by a stable `pageKey`; coded pages read their meta from here so SEO can
+// be edited from the admin panel without touching code. CMS pages carry their
+// own SEO inside the CmsPage record, so they don't need this.
+model SeoMeta {
+  id              String   @id @default(uuid())
+  pageKey         String   @unique // e.g. "home", "about", "contact"
+  label           String? // human-friendly name shown in admin
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  canonicalUrl    String?
+  noIndex         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([pageKey])
+  @@map("seo_meta")
+}
+
+// ─── OTP Verification ────────────────────────────────────────────────────────
+model OtpVerification {
+  id          String    @id @default(uuid())
+  phoneNumber String
+  otp         String
+  provider    String // 'sms' | 'whatsapp'
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  verified    Boolean   @default(false)
+  verifiedAt  DateTime?
+  userId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([phoneNumber])
+  @@index([phoneNumber, verified])
+  @@map("otp_verifications")
+}

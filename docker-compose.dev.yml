@@ -1,0 +1,128 @@
+
+# ============================================
+# SERVICES
+# ============================================
+services:
+  # ============================================
+  # NESTJS APPLICATION (Development)
+  # ============================================
+  app:
+    container_name: nestjs-app-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Hot reload - sync source code
+      - .:/usr/src/app
+      # Prevent node_modules sync (use container's version)
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      # Override DB host for the Docker network (service name = postgres)
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nestjs_db?schema=public
+    env_file:
+      - .env.development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # redis is OPTIONAL — start it only with: docker compose --profile cache up
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: pnpm run start:dev
+
+  # ============================================
+  # POSTGRESQL DATABASE
+  # ============================================
+  postgres:
+    container_name: postgres-dev
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nestjs_db
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # REDIS CACHE
+  # ============================================
+  redis:
+    profiles: ["cache"] # optional service — only runs with: docker compose --profile cache up
+    container_name: redis-dev
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # ============================================
+  # ADMINER - PostgreSQL GUI (Development Only) → http://localhost:8081
+  # ============================================
+  adminer:
+    container_name: adminer-dev
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ============================================
+  # REDIS COMMANDER - Redis GUI (Development Only)
+  # ============================================
+  redis-commander:
+    profiles: ["cache"] # optional GUI — only runs with the "cache" profile
+    container_name: redis-commander-dev
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8082:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  app-network:
+    driver: bridge
