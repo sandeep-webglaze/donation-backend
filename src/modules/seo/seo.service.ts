@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { UpsertSeoDto } from './dto/upsert-seo.dto';
 
@@ -27,5 +28,20 @@ export class SeoService {
       create: { pageKey, ...dto },
       update: dto,
     });
+  }
+
+  /** Admin — reset (delete) a page's SEO. */
+  async remove(pageKey: string): Promise<void> {
+    try {
+      await this.prisma.seoMeta.delete({ where: { pageKey } });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('SEO entry not found');
+      }
+      throw error;
+    }
   }
 }

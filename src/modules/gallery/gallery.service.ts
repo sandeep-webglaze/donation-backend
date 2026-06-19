@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateGalleryDto } from './dto/create-gallery.dto';
+import { UpdateGalleryDto } from './dto/update-gallery.dto';
 
 @Injectable()
 export class GalleryService {
@@ -28,6 +29,21 @@ export class GalleryService {
         section: dto.section ?? 'gallery',
       },
     });
+  }
+
+  /** Admin — edit an item (caption, section, order, type). */
+  async update(id: string, dto: UpdateGalleryDto) {
+    try {
+      return await this.prisma.galleryItem.update({ where: { id }, data: dto });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Gallery item not found');
+      }
+      throw error;
+    }
   }
 
   /** Admin — delete an item. */

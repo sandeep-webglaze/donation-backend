@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { SeoService } from './seo.service';
 import { UpsertSeoDto } from './dto/upsert-seo.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -30,5 +30,12 @@ export class SeoController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   upsert(@Param('key') key: string, @Body() dto: UpsertSeoDto) {
     return this.seoService.upsert(key, dto);
+  }
+
+  /** Admin — reset SEO for a page key. */
+  @Delete(':key')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  remove(@Param('key') key: string) {
+    return this.seoService.remove(key);
   }
 }

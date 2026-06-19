@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { UpsertContentDto } from './dto/upsert-content.dto';
@@ -30,5 +30,22 @@ export class ContentService {
       create: { pageKey, sectionKey, ...data },
       update: data,
     });
+  }
+
+  /** Admin — clear a section's content. */
+  async remove(pageKey: string, sectionKey: string): Promise<void> {
+    try {
+      await this.prisma.contentBlock.delete({
+        where: { pageKey_sectionKey: { pageKey, sectionKey } },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Content block not found');
+      }
+      throw error;
+    }
   }
 }

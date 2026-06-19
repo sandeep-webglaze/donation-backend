@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { ContentService } from './content.service';
 import { UpsertContentDto } from './dto/upsert-content.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -34,5 +34,15 @@ export class ContentController {
     @Body() dto: UpsertContentDto,
   ) {
     return this.contentService.upsert(pageKey, sectionKey, dto);
+  }
+
+  /** Admin — clear a section's content. */
+  @Delete(':pageKey/:sectionKey')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  remove(
+    @Param('pageKey') pageKey: string,
+    @Param('sectionKey') sectionKey: string,
+  ) {
+    return this.contentService.remove(pageKey, sectionKey);
   }
 }
