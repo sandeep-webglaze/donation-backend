@@ -191,13 +191,13 @@ import { JwtModule } from '@nestjs/jwt';
     OtpAuthModule,
 
     // ══════════════════════════════════════════════════════════════════════
-    // 🔍 RoutesModule - Development Only
+    // 🔍 RoutesModule - Route discovery
     // ══════════════════════════════════════════════════════════════════════
-    // Purpose: Lists all registered routes for debugging
-    // Conditional: Only loaded in development mode
-    // Access: GET /api/routes (shows all endpoints)
+    // Always imported because AppController injects RoutesService. The detailed
+    // route listing is still only EXPOSED in development (guarded in the
+    // controller by NODE_ENV / features.enableRouteDiscovery).
     // ══════════════════════════════════════════════════════════════════════
-    ...(process.env.NODE_ENV === 'development' ? [RoutesModule] : []),
+    RoutesModule,
   ],
 
   // ==========================================================================
