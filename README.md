@@ -47,6 +47,12 @@ docker compose -f docker-compose.dev.yml up
 # 3b. (Option B) Run locally against your own Postgres
 #     Make sure Postgres is running, then:
 
+# for neon
+pnpm prisma generate
+pnpm prisma migrate deploy
+
+
+
 # 4. Create the database tables
 pnpm prisma migrate dev --name init
 
