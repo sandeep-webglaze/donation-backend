@@ -21,26 +21,24 @@ constructor(private readonly configService: ConfigService) {
     true,
   );
 
-  if (this.isDevelopment) {
-    this.logger.warn('⚠️ Twilio disabled (DEV MODE)');
-    return; // 🔥 IMPORTANT
-  }
-
   const accountSid =
-    this.configService.getOrThrow<string>('otp.twilio.accountSid');
+    this.configService.get<string>('otp.twilio.accountSid') || '';
   const authToken =
-    this.configService.getOrThrow<string>('otp.twilio.authToken');
+    this.configService.get<string>('otp.twilio.authToken') || '';
 
-  if (!accountSid.startsWith('AC')) {
-    throw new Error(
-      `Invalid Twilio Account SID. Must start with AC. Got: ${accountSid}`,
+  // Cleanly disable (no-op) when not properly configured — don't crash the app.
+  // Real credentials: Account SID starts with "AC". Placeholders/dev → disabled.
+  if (this.isDevelopment || !accountSid.startsWith('AC') || !authToken) {
+    this.logger.warn(
+      '⚪ Twilio disabled (not configured) — SMS/WhatsApp sending is a no-op.',
     );
+    return;
   }
 
   this.phoneNumber =
-    this.configService.getOrThrow<string>('otp.twilio.phoneNumber');
+    this.configService.get<string>('otp.twilio.phoneNumber') || '';
   this.whatsappNumber =
-    this.configService.getOrThrow<string>('otp.twilio.whatsappNumber');
+    this.configService.get<string>('otp.twilio.whatsappNumber') || '';
 
   this.twilioClient = Twilio(accountSid, authToken);
 
@@ -56,13 +54,9 @@ constructor(private readonly configService: ConfigService) {
   async sendSMS(phoneNumber: string, otp: string): Promise<void> {
     const message = `Your OTP is: ${otp}. Valid for 10 minutes. Do not share with anyone.`;
 
-    if (this.isDevelopment) {
-      this.logger.debug(`[DEV MODE] SMS to ${phoneNumber}: ${message}`);
+    if (this.isDevelopment || !this.twilioClient) {
+      this.logger.debug(`[Twilio off] SMS to ${phoneNumber}: ${message}`);
       return;
-    }
-
-    if (!this.twilioClient) {
-      throw new Error('Twilio client not initialized. Check credentials.');
     }
 
     try {
@@ -87,13 +81,9 @@ constructor(private readonly configService: ConfigService) {
   async sendWhatsApp(phoneNumber: string, otp: string): Promise<void> {
     const message = `🔐 Your OTP is: *${otp}*\n\nValid for 10 minutes.\nDo not share with anyone.`;
 
-    if (this.isDevelopment) {
-      this.logger.debug(`[DEV MODE] WhatsApp to ${phoneNumber}: ${message}`);
+    if (this.isDevelopment || !this.twilioClient) {
+      this.logger.debug(`[Twilio off] WhatsApp to ${phoneNumber}: ${message}`);
       return;
-    }
-
-    if (!this.twilioClient) {
-      throw new Error('Twilio client not initialized. Check credentials.');
     }
 
     try {
