@@ -10,7 +10,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { extname, join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Role, Roles } from '../../common/decorators/roles.decorator';
@@ -53,7 +53,7 @@ export class MediaController {
 
     // 2) Local disk fallback (dev)
     if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
-    const filename = `${uuidv4()}${extname(file.originalname).toLowerCase()}`;
+    const filename = `${randomUUID()}${extname(file.originalname).toLowerCase()}`;
     writeFileSync(join(UPLOAD_DIR, filename), file.buffer);
     const base =
       process.env.APP_URL || `http://localhost:${process.env.PORT || 8080}`;
