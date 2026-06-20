@@ -40,9 +40,12 @@ RUN pnpm install --frozen-lockfile || pnpm install
 
 COPY . .
 
-# Generate Prisma client + build, then drop dev dependencies
+# Generate Prisma client + build, then drop dev dependencies.
+# --ignore-scripts: skip the `postinstall: prisma generate` during prune
+# (prisma CLI is a devDependency being removed; the client is already generated
+# and @prisma/client is a prod dep that survives the prune).
 RUN pnpm run build
-RUN pnpm prune --prod
+RUN pnpm prune --prod --ignore-scripts
 
 
 # ============================================
