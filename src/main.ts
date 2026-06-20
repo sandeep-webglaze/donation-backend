@@ -50,13 +50,34 @@ async function bootstrap() {
     exclude: ['/', 'api'], // Exclude landing page from /api prefix
   });
 
-  // CORS - Use config value
+  // CORS — allow localhost (dev), the configured frontend URL, any origins in
+  // CORS_ORIGINS (comma-separated), and all *.vercel.app deployments/previews.
+  const envOrigins = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:8080',
+    frontendUrl,
+    ...envOrigins,
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:8080',
-    ],
+    origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+      // No origin = server-to-server / curl → allow.
+      if (!origin) return cb(null, true);
+      let host = '';
+      try {
+        host = new URL(origin).hostname;
+      } catch {
+        /* ignore */
+      }
+      const ok =
+        allowedOrigins.includes(origin) || /(^|\.)vercel\.app$/.test(host);
+      cb(null, ok);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
